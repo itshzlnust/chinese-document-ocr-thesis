@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { DocumentWordToken } from '../types';
 import { DictionaryService } from '../services/dictionary';
 import { HanziVGService } from '../services/hanzivg';
+import { NMTTranslationService } from '../services/nmtTranslationService';
 import {
   Volume2, Bookmark, BookmarkCheck, RotateCcw,
   BookOpen, PenTool, Sparkles, MessageSquare,
   FileText, MapPin, X, Copy, Check,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, Zap, Bot, RefreshCw
 } from 'lucide-react';
 
 interface HoverPopupProps {
@@ -44,7 +45,9 @@ export const HoverPopup: React.FC<HoverPopupProps> = ({
   const [animSpeed] = useState(1.2);
   const [showNumbers, setShowNumbers] = useState(true);
   const [copied, setCopied] = useState(false);
-  const [charIndex, setCharIndex] = useState(0);         // active character index in strokes view
+  const [charIndex, setCharIndex] = useState(0);
+  const [nmtResult, setNmtResult] = useState<string | null>(null);
+  const [nmtLoading, setNmtLoading] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
 
   const isChineseToken = isChinese(token.chinese);
@@ -63,8 +66,16 @@ export const HoverPopup: React.FC<HoverPopupProps> = ({
     setStrokeAnimKey((prev) => prev + 1);
     setIsPlayingStrokes(true);
     setCopied(false);
-    setCharIndex(0);   // reset to first character on new token
+    setCharIndex(0);
+    setNmtResult(null);   // clear NMT result on new token
   }, [token.id]);
+
+  const handleNMTTranslate = useCallback(async () => {
+    setNmtLoading(true);
+    const result = await NMTTranslationService.translate(token.chinese, 'zh-en');
+    setNmtResult(result.translated);
+    setNmtLoading(false);
+  }, [token.chinese]);
 
   // When character index changes, auto-replay
   useEffect(() => {
@@ -300,6 +311,7 @@ export const HoverPopup: React.FC<HoverPopupProps> = ({
             {/* DICTIONARY */}
             {subTab === 'dictionary' && (
               <div className="space-y-2 text-xs">
+                {/* CC-CEDICT static definitions */}
                 <div className="p-3 rounded-xl space-y-1"
                   style={{ background: 'rgba(15,23,42,0.8)', border: '1px solid rgba(255,255,255,0.07)' }}>
                   <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
@@ -312,9 +324,44 @@ export const HoverPopup: React.FC<HoverPopupProps> = ({
                 <div className="p-3 rounded-xl space-y-1"
                   style={{ background: 'rgba(15,23,42,0.5)', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
-                    🇬🇧 English Definition
+                    🇬🇧 English Definition (CC-CEDICT)
                   </span>
                   <p className="text-xs text-slate-300 leading-relaxed">{token.englishDef}</p>
+                </div>
+
+                {/* NMT Real-time Translation */}
+                <div className="rounded-xl overflow-hidden"
+                  style={{ border: '1px solid rgba(99,102,241,0.30)' }}>
+                  <div className="px-3 py-2 flex items-center justify-between"
+                    style={{ background: 'rgba(49,46,129,0.25)' }}>
+                    <span className="text-[9px] font-semibold text-indigo-400 uppercase tracking-wider flex items-center gap-1">
+                      <Bot className="w-3 h-3" /> Helsinki-NLP NMT (ZH→EN)
+                    </span>
+                    <button
+                      onClick={handleNMTTranslate}
+                      disabled={nmtLoading}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold transition-all"
+                      style={{
+                        background: nmtLoading ? 'rgba(30,41,59,0.6)' : 'rgba(99,102,241,0.25)',
+                        border: '1px solid rgba(99,102,241,0.40)',
+                        color: nmtLoading ? '#64748b' : '#a5b4fc',
+                      }}
+                    >
+                      {nmtLoading
+                        ? <><RefreshCw className="w-2.5 h-2.5 animate-spin" /> Menerjemahkan...</>
+                        : <><Zap className="w-2.5 h-2.5" /> {nmtResult ? 'Ulangi' : 'Terjemahkan'}</>
+                      }
+                    </button>
+                  </div>
+                  <div className="px-3 py-2.5" style={{ background: 'rgba(15,23,42,0.7)' }}>
+                    {nmtResult ? (
+                      <p className="text-xs text-indigo-100 leading-relaxed font-medium">{nmtResult}</p>
+                    ) : (
+                      <p className="text-[10px] text-slate-600 italic">
+                        Klik "Terjemahkan" untuk terjemahan NMT real-time via Helsinki-NLP
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

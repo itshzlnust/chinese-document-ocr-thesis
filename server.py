@@ -96,59 +96,92 @@ except ImportError:
 
 
 # ─────────────────────────────────────────────────────────────
-# Model holder
+# Model holders — MonkeyOCR v2-B + Helsinki-NLP NMT
 # ─────────────────────────────────────────────────────────────
 class _ModelHolder:
+    # MonkeyOCR v2-B (Qwen2-VL)
     model = None
     processor = None
     is_loaded: bool = False
     load_error: Optional[str] = None
 
-_mh = _ModelHolder()
+class _NMTHolder:
+    # Helsinki-NLP/opus-mt-zh-en  (ZH→EN)
+    zh_en_model = None
+    zh_en_tok = None
+    zh_en_loaded: bool = False
+    # Helsinki-NLP/opus-mt-en-zh  (EN→ZH)
+    en_zh_model = None
+    en_zh_tok = None
+    en_zh_loaded: bool = False
+    load_error: Optional[str] = None
+
+_mh  = _ModelHolder()
+_nmt = _NMTHolder()
 
 
-def _load_model():
-    """
-    Load MonkeyOCR v2-B (Qwen2-VL backbone) from local path or ModelScope.
-    MonkeyOCR v2-B is essentially a fine-tuned Qwen2VLForConditionalGeneration.
-    """
-    global _mh
+def _load_monkey_model():
+    """Load MonkeyOCR v2-B from local path or ModelScope."""
     if _mh.is_loaded:
         return
-
     if not HAS_TRANSFORMERS:
-        _mh.load_error = "transformers package not installed"
+        _mh.load_error = "transformers not installed"
         return
 
-    # Prefer local weights; fall back to ModelScope auto-download
     model_src = LOCAL_MODEL_PATH if Path(LOCAL_MODEL_PATH).exists() else MODELSCOPE_MODEL_ID
     logger.info(f"Loading MonkeyOCR v2-B from: {model_src}")
-
     try:
         _mh.model = Qwen2VLForConditionalGeneration.from_pretrained(
-            model_src,
-            torch_dtype="auto",
-            device_map="auto",
-            trust_remote_code=True,
+            model_src, torch_dtype="auto", device_map="auto", trust_remote_code=True,
         ).eval()
-
-        _mh.processor = AutoProcessor.from_pretrained(
-            model_src,
-            trust_remote_code=True,
-        )
-
+        _mh.processor = AutoProcessor.from_pretrained(model_src, trust_remote_code=True)
         _mh.is_loaded = True
-        logger.info("✅ MonkeyOCR v2-B loaded successfully!")
-
+        logger.info("✅ MonkeyOCR v2-B loaded!")
     except Exception as exc:
         _mh.load_error = str(exc)
-        logger.warning(f"⚠️  Model load failed: {exc}")
-        logger.warning("Falling back to pdfplumber-only mode.")
+        logger.warning(f"⚠️  MonkeyOCR v2-B load failed: {exc}")
+
+
+def _load_nmt_models():
+    """Load Helsinki-NLP MarianMT bidirectional translation models."""
+    if not HAS_TRANSFORMERS:
+        _nmt.load_error = "transformers not installed"
+        return
+
+    try:
+        from transformers import MarianMTModel, MarianTokenizer
+
+        # ZH → EN
+        logger.info("Loading Helsinki-NLP/opus-mt-zh-en ...")
+        _nmt.zh_en_tok = MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-zh-en")
+        _nmt.zh_en_model = MarianMTModel.from_pretrained(
+            "Helsinki-NLP/opus-mt-zh-en"
+        ).to(DEVICE).eval()
+        _nmt.zh_en_loaded = True
+        logger.info("✅ Helsinki-NLP/opus-mt-zh-en loaded!")
+
+        # EN → ZH
+        logger.info("Loading Helsinki-NLP/opus-mt-en-zh ...")
+        _nmt.en_zh_tok = MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-zh")
+        _nmt.en_zh_model = MarianMTModel.from_pretrained(
+            "Helsinki-NLP/opus-mt-en-zh"
+        ).to(DEVICE).eval()
+        _nmt.en_zh_loaded = True
+        logger.info("✅ Helsinki-NLP/opus-mt-en-zh loaded!")
+
+    except Exception as exc:
+        _nmt.load_error = str(exc)
+        logger.warning(f"⚠️  NMT model load failed: {exc}")
 
 
 @app.on_event("startup")
 async def startup():
-    _load_model()
+    import asyncio
+    loop = asyncio.get_event_loop()
+    # Load both model sets in parallel (non-blocking)
+    loop.run_in_executor(None, _load_monkey_model)
+    loop.run_in_executor(None, _load_nmt_models)
+
 
 
 # ─────────────────────────────────────────────────────────────
