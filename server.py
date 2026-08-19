@@ -121,7 +121,7 @@ _nmt = _NMTHolder()
 
 
 def _load_monkey_model():
-    """Load MonkeyOCR v2-B from local path or ModelScope."""
+    """Load MonkeyOCR v2-B from local path or ModelScope using AutoModel loader."""
     if _mh.is_loaded:
         return
     if not HAS_TRANSFORMERS:
@@ -130,16 +130,26 @@ def _load_monkey_model():
 
     model_src = LOCAL_MODEL_PATH if Path(LOCAL_MODEL_PATH).exists() else MODELSCOPE_MODEL_ID
     logger.info(f"Loading MonkeyOCR v2-B from: {model_src}")
-    try:
-        _mh.model = Qwen2VLForConditionalGeneration.from_pretrained(
-            model_src, torch_dtype="auto", device_map="auto", trust_remote_code=True,
-        ).eval()
-        _mh.processor = AutoProcessor.from_pretrained(model_src, trust_remote_code=True)
-        _mh.is_loaded = True
-        logger.info("✅ MonkeyOCR v2-B loaded!")
-    except Exception as exc:
-        _mh.load_error = str(exc)
-        logger.warning(f"⚠️  MonkeyOCR v2-B load failed: {exc}")
+
+    from transformers import AutoModelForCausalLM, AutoModelForVision2Seq, AutoModel
+
+    loaders = [AutoModelForCausalLM, AutoModelForVision2Seq, AutoModel, Qwen2VLForConditionalGeneration]
+    for loader in loaders:
+        try:
+            logger.info(f"Attempting loader {loader.__name__} ...")
+            _mh.model = loader.from_pretrained(
+                model_src,
+                torch_dtype="auto",
+                trust_remote_code=True,
+            ).eval()
+            _mh.processor = AutoProcessor.from_pretrained(model_src, trust_remote_code=True)
+            _mh.is_loaded = True
+            logger.info(f"✅ MonkeyOCR v2-B loaded successfully using {loader.__name__}!")
+            return
+        except Exception as exc:
+            logger.warning(f"Loader {loader.__name__} failed: {exc}")
+
+    _mh.load_error = "All transformers model loaders failed"
 
 
 def _load_nmt_models():
@@ -156,7 +166,7 @@ def _load_nmt_models():
         _nmt.zh_en_tok = MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-zh-en")
         _nmt.zh_en_model = MarianMTModel.from_pretrained(
             "Helsinki-NLP/opus-mt-zh-en"
-        ).to(DEVICE).eval()
+        ).eval()
         _nmt.zh_en_loaded = True
         logger.info("✅ Helsinki-NLP/opus-mt-zh-en loaded!")
 
@@ -165,7 +175,7 @@ def _load_nmt_models():
         _nmt.en_zh_tok = MarianTokenizer.from_pretrained("Helsinki-NLP/opus-mt-en-zh")
         _nmt.en_zh_model = MarianMTModel.from_pretrained(
             "Helsinki-NLP/opus-mt-en-zh"
-        ).to(DEVICE).eval()
+        ).eval()
         _nmt.en_zh_loaded = True
         logger.info("✅ Helsinki-NLP/opus-mt-en-zh loaded!")
 
@@ -176,11 +186,8 @@ def _load_nmt_models():
 
 @app.on_event("startup")
 async def startup():
-    import asyncio
-    loop = asyncio.get_event_loop()
-    # Load both model sets in parallel (non-blocking)
-    loop.run_in_executor(None, _load_monkey_model)
-    loop.run_in_executor(None, _load_nmt_models)
+    _load_monkey_model()
+    _load_nmt_models()
 
 
 
