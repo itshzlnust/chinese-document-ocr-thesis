@@ -97,40 +97,82 @@ export class OCRScannerService {
   }
 
   /**
-   * Scans image using Tesseract.js client-side OCR for word-level bounding boxes
+   * Scans an image (or scanned PDF canvas) using Tesseract.js client-side OCR for real word/character bounding boxes
    */
   public static async scanImageWithTesseract(imageSrc: string): Promise<DocumentBlock[]> {
     try {
+      console.info('Starting Tesseract.js client-side Chinese OCR scan...');
       const worker = await createWorker('chi_sim+eng');
       const ret = await worker.recognize(imageSrc);
       await worker.terminate();
 
       const tokens: DocumentWordToken[] = [];
 
-      if (ret.data && ret.data.words) {
-        const imageWidth = (ret.data as any).width || 1000;
-        const imageHeight = (ret.data as any).height || 1200;
+      if (ret.data) {
+        // Obtain actual image canvas dimensions
+        const img = new Image();
+        img.src = imageSrc;
+        await new Promise((resolve) => { img.onload = resolve; });
 
-        ret.data.words.forEach((w) => {
-          const text = w.text.trim();
-          if (text.length > 0 && shouldIncludeToken(text)) {
+        const imageWidth = img.naturalWidth || (ret.data as any).width || 1000;
+        const imageHeight = img.naturalHeight || (ret.data as any).height || 1200;
+
+        // Process Recognized Words or Symbols from Tesseract OCR output
+        const words = ret.data.words || [];
+
+        words.forEach((w) => {
+          const rawText = w.text.trim();
+          if (!rawText) return;
+
+          // If word is Chinese and contains multiple characters, split into character/word tokens
+          if (hasHanzi(rawText) && w.symbols && w.symbols.length > 0) {
+            w.symbols.forEach((sym) => {
+              const charText = sym.text.trim();
+              if (charText && hasHanzi(charText)) {
+                const { x0, y0, x1, y1 } = sym.bbox;
+                const x = Number(((x0 / imageWidth) * 100).toFixed(2));
+                const y = Number(((y0 / imageHeight) * 100).toFixed(2));
+                const width = Number((((x1 - x0) / imageWidth) * 100).toFixed(2));
+                const height = Number((((y1 - y0) / imageHeight) * 100).toFixed(2));
+
+                tokens.push(
+                  this.createTokenFromText(charText, {
+                    x: Math.min(Math.max(x, 1), 96),
+                    y: Math.min(Math.max(y, 1), 96),
+                    width: Math.max(width, 2.2),
+                    height: Math.max(height, 2.2),
+                  })
+                );
+              }
+            });
+          } else if (shouldIncludeToken(rawText)) {
+            // English or single Chinese word block
             const { x0, y0, x1, y1 } = w.bbox;
             const x = Number(((x0 / imageWidth) * 100).toFixed(2));
             const y = Number(((y0 / imageHeight) * 100).toFixed(2));
             const width = Number((((x1 - x0) / imageWidth) * 100).toFixed(2));
             const height = Number((((y1 - y0) / imageHeight) * 100).toFixed(2));
 
-            tokens.push(this.createTokenFromText(text, { x, y, width, height }));
+            tokens.push(
+              this.createTokenFromText(rawText, {
+                x: Math.min(Math.max(x, 1), 96),
+                y: Math.min(Math.max(y, 1), 96),
+                width: Math.max(width, 2.0),
+                height: Math.max(height, 2.0),
+              })
+            );
           }
         });
       }
+
+      console.info(`Tesseract OCR completed: ${tokens.length} word-level tokens extracted.`);
 
       if (tokens.length > 0) {
         return [
           {
             id: `tesseract-block-1`,
             bbox: { x: 2, y: 2, width: 96, height: 96 },
-            chineseText: ret.data.text.substring(0, 150),
+            chineseText: ret.data.text ? ret.data.text.substring(0, 150) : '',
             indonesianTranslation: 'Hasil pemindaian Word-Level OCR Tesseract.',
             tokens,
           },
@@ -155,8 +197,6 @@ export class OCRScannerService {
     const trimmed = fullStr.trim();
     if (!trimmed) return tokens;
 
-    // Split words by space or Chinese character boundaries
-    // Chinese characters are split into 1-2 char words; English words by whitespace
     const words: string[] = [];
     const parts = trimmed.split(/(\s+|[\u4e00-\u9fa5]{1,2})/);
     for (const p of parts) {
@@ -178,7 +218,6 @@ export class OCRScannerService {
         continue;
       }
 
-      // Calculate word's relative position along the parent bounding box line
       const wordRatio = word.length / Math.max(totalChars, 1);
       const startRatio = charOffset / Math.max(totalChars, 1);
 
