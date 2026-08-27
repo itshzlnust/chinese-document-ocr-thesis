@@ -17,9 +17,9 @@ const isEnglish = (text: string): boolean => {
   return /^[a-zA-Z0-9\s\-'.,!?&/()]+$/.test(trimmed);
 };
 
-/** Filter to keep only Hanzi or English tokens */
+/** Filter to keep only Hanzi or English tokens, rejecting pure numbers, symbols, and single punctuation */
 const shouldIncludeToken = (text: string): boolean => {
-  const trimmed = text.trim();
+  const trimmed = text.trim().replace(/^[0-9\s\.,:;、，。！？\(\)\[\]#\-—–]+|[0-9\s\.,:;、，。！？\(\)\[\]#\-—–]+$/g, '');
   if (trimmed.length === 0) return false;
   return hasHanzi(trimmed) || isEnglish(trimmed);
 };
@@ -59,10 +59,10 @@ export class OCRScannerService {
         const leftPx = xPdf;
         const topPx = viewport.height - yPdf - fontSize;
 
-        const xPercent = Math.min(Math.max(1, (leftPx / viewport.width) * 100), 96);
-        const yPercent = Math.min(Math.max(1, (topPx / viewport.height) * 100), 96);
-        const widthPercent = Math.min(Math.max(2, (itemWidth / viewport.width) * 100), 95);
-        const heightPercent = Math.min(Math.max(1.8, ((fontSize * 1.3) / viewport.height) * 100), 15);
+        const xPercent = Math.min(Math.max(0.5, (leftPx / viewport.width) * 100), 96);
+        const yPercent = Math.min(Math.max(0.5, (topPx / viewport.height) * 100), 96);
+        const widthPercent = Math.min(Math.max(1.8, (itemWidth / viewport.width) * 100), 96);
+        const heightPercent = Math.min(Math.max(1.6, ((fontSize * 1.3) / viewport.height) * 100), 16);
 
         fullText += str + ' ';
 
@@ -81,7 +81,7 @@ export class OCRScannerService {
         return [
           {
             id: `scanned-pdf-block-1`,
-            bbox: { x: 2, y: 2, width: 96, height: 96 },
+            bbox: { x: 1, y: 1, width: 98, height: 98 },
             chineseText: fullText.substring(0, 150),
             indonesianTranslation: 'Teks dokumen PDF teridentifikasi secara word-level.',
             tokens,
@@ -97,7 +97,8 @@ export class OCRScannerService {
   }
 
   /**
-   * Scans an image (or scanned PDF canvas) using Tesseract.js client-side OCR for real word/character bounding boxes
+   * Scans an image using Tesseract.js client-side OCR with line-aware Chinese word grouping
+   * to produce tight, accurate, and clean word-level bounding boxes.
    */
   public static async scanImageWithTesseract(imageSrc: string): Promise<DocumentBlock[]> {
     try {
@@ -117,52 +118,71 @@ export class OCRScannerService {
         const imageWidth = img.naturalWidth || (ret.data as any).width || 1000;
         const imageHeight = img.naturalHeight || (ret.data as any).height || 1200;
 
-        // Process Recognized Words or Symbols from Tesseract OCR output
-        const words = ret.data.words || [];
+        const lines = ret.data.lines || [];
 
-        words.forEach((w) => {
-          const rawText = w.text.trim();
-          if (!rawText) return;
+        if (lines.length > 0) {
+          lines.forEach((line) => {
+            const lineText = line.text ? line.text.trim() : '';
+            if (!lineText || !shouldIncludeToken(lineText)) return;
 
-          // If word is Chinese and contains multiple characters, split into character/word tokens
-          if (hasHanzi(rawText) && w.symbols && w.symbols.length > 0) {
-            w.symbols.forEach((sym) => {
-              const charText = sym.text.trim();
-              if (charText && hasHanzi(charText)) {
-                const { x0, y0, x1, y1 } = sym.bbox;
-                const x = Number(((x0 / imageWidth) * 100).toFixed(2));
-                const y = Number(((y0 / imageHeight) * 100).toFixed(2));
-                const width = Number((((x1 - x0) / imageWidth) * 100).toFixed(2));
-                const height = Number((((y1 - y0) / imageHeight) * 100).toFixed(2));
+            const lBox = line.bbox;
+            const lineW = Math.max(lBox.x1 - lBox.x0, 10);
 
-                tokens.push(
-                  this.createTokenFromText(charText, {
-                    x: Math.min(Math.max(x, 1), 96),
-                    y: Math.min(Math.max(y, 1), 96),
-                    width: Math.max(width, 2.2),
-                    height: Math.max(height, 2.2),
-                  })
-                );
+            // Segment line into natural Chinese words (1-3 chars) and English words
+            const words = this.segmentLineIntoWords(lineText);
+            let charCursor = 0;
+            const totalLineChars = Math.max(lineText.length, 1);
+
+            words.forEach((word) => {
+              const cleanWord = word.trim().replace(/^[0-9\s\.,:;、，。！？\(\)\[\]#\-—–]+|[0-9\s\.,:;、，。！？\(\)\[\]#\-—–]+$/g, '');
+              if (!cleanWord || !shouldIncludeToken(cleanWord)) {
+                charCursor += word.length;
+                return;
               }
-            });
-          } else if (shouldIncludeToken(rawText)) {
-            // English or single Chinese word block
-            const { x0, y0, x1, y1 } = w.bbox;
-            const x = Number(((x0 / imageWidth) * 100).toFixed(2));
-            const y = Number(((y0 / imageHeight) * 100).toFixed(2));
-            const width = Number((((x1 - x0) / imageWidth) * 100).toFixed(2));
-            const height = Number((((y1 - y0) / imageHeight) * 100).toFixed(2));
 
-            tokens.push(
-              this.createTokenFromText(rawText, {
-                x: Math.min(Math.max(x, 1), 96),
-                y: Math.min(Math.max(y, 1), 96),
-                width: Math.max(width, 2.0),
-                height: Math.max(height, 2.0),
-              })
-            );
-          }
-        });
+              // Calculate proportional or symbol-based coordinates
+              let wordX0 = lBox.x0 + (charCursor / totalLineChars) * lineW;
+              let wordX1 = lBox.x0 + ((charCursor + word.length) / totalLineChars) * lineW;
+              let wordY0 = lBox.y0;
+              let wordY1 = lBox.y1;
+
+              // If line has symbols matching this word range, compute tight symbol bounds
+              if (line.symbols && line.symbols.length > 0) {
+                const matchedSymbols = line.symbols.slice(charCursor, charCursor + word.length);
+                const validSyms = matchedSymbols.filter(s => s && s.bbox && s.bbox.x1 > s.bbox.x0);
+                if (validSyms.length > 0) {
+                  wordX0 = Math.min(...validSyms.map(s => s.bbox.x0));
+                  wordX1 = Math.max(...validSyms.map(s => s.bbox.x1));
+                  wordY0 = Math.min(...validSyms.map(s => s.bbox.y0));
+                  wordY1 = Math.max(...validSyms.map(s => s.bbox.y1));
+                }
+              }
+
+              // Convert to percentage
+              const x = Number(Math.max(0.5, Math.min(96, (wordX0 / imageWidth) * 100)).toFixed(2));
+              const y = Number(Math.max(0.5, Math.min(96, (wordY0 / imageHeight) * 100)).toFixed(2));
+              const width = Number(Math.max(1.8, Math.min(98 - x, ((wordX1 - wordX0) / imageWidth) * 100)).toFixed(2));
+              const height = Number(Math.max(1.6, Math.min(98 - y, ((wordY1 - wordY0) / imageHeight) * 100)).toFixed(2));
+
+              tokens.push(this.createTokenFromText(cleanWord, { x, y, width, height }));
+              charCursor += word.length;
+            });
+          });
+        } else if (ret.data.words && ret.data.words.length > 0) {
+          // Fallback if lines are missing
+          ret.data.words.forEach((w) => {
+            const rawText = w.text ? w.text.trim() : '';
+            const cleanText = rawText.replace(/^[0-9\s\.,:;、，。！？\(\)\[\]#\-—–]+|[0-9\s\.,:;、，。！？\(\)\[\]#\-—–]+$/g, '');
+            if (cleanText && shouldIncludeToken(cleanText)) {
+              const x = Number(Math.max(0.5, Math.min(96, (w.bbox.x0 / imageWidth) * 100)).toFixed(2));
+              const y = Number(Math.max(0.5, Math.min(96, (w.bbox.y0 / imageHeight) * 100)).toFixed(2));
+              const width = Number(Math.max(1.8, Math.min(98 - x, ((w.bbox.x1 - w.bbox.x0) / imageWidth) * 100)).toFixed(2));
+              const height = Number(Math.max(1.6, Math.min(98 - y, ((w.bbox.y1 - w.bbox.y0) / imageHeight) * 100)).toFixed(2));
+
+              tokens.push(this.createTokenFromText(cleanText, { x, y, width, height }));
+            }
+          });
+        }
       }
 
       console.info(`Tesseract OCR completed: ${tokens.length} word-level tokens extracted.`);
@@ -171,7 +191,7 @@ export class OCRScannerService {
         return [
           {
             id: `tesseract-block-1`,
-            bbox: { x: 2, y: 2, width: 96, height: 96 },
+            bbox: { x: 1, y: 1, width: 98, height: 98 },
             chineseText: ret.data.text ? ret.data.text.substring(0, 150) : '',
             indonesianTranslation: 'Hasil pemindaian Word-Level OCR Tesseract.',
             tokens,
@@ -187,6 +207,37 @@ export class OCRScannerService {
   }
 
   /**
+   * Segments a Chinese/English text line into 1–3 character Chinese words and English words
+   */
+  private static segmentLineIntoWords(line: string): string[] {
+    const result: string[] = [];
+    // Split by whitespace or non-Hanzi boundaries
+    const chunks = line.split(/(\s+|[a-zA-Z0-9\-_]+|[，。！？、：；（）\(\)\[\]])/);
+
+    for (const chunk of chunks) {
+      if (!chunk) continue;
+
+      if (hasHanzi(chunk)) {
+        // Group Chinese characters into 2-character words (or 3-chars if remaining)
+        let i = 0;
+        while (i < chunk.length) {
+          if (i + 2 <= chunk.length) {
+            result.push(chunk.substring(i, i + 2));
+            i += 2;
+          } else {
+            result.push(chunk.substring(i, i + 1));
+            i += 1;
+          }
+        }
+      } else {
+        result.push(chunk);
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Segments a string (line or phrase) into individual word tokens with tight sub-bounding boxes
    */
   private static segmentStringIntoWordTokens(
@@ -197,43 +248,34 @@ export class OCRScannerService {
     const trimmed = fullStr.trim();
     if (!trimmed) return tokens;
 
-    const words: string[] = [];
-    const parts = trimmed.split(/(\s+|[\u4e00-\u9fa5]{1,2})/);
-    for (const p of parts) {
-      const w = p.trim();
-      if (w.length > 0) {
-        words.push(w);
-      }
-    }
-
-    if (words.length === 0) return tokens;
-
-    const totalChars = trimmed.length;
+    const words = this.segmentLineIntoWords(trimmed);
+    const totalChars = Math.max(trimmed.length, 1);
     let charOffset = 0;
 
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
-      if (!shouldIncludeToken(word)) {
-        charOffset += word.length + 1;
+      const clean = word.trim().replace(/^[0-9\s\.,:;、，。！？\(\)\[\]#\-—–]+|[0-9\s\.,:;、，。！？\(\)\[\]#\-—–]+$/g, '');
+      if (!clean || !shouldIncludeToken(clean)) {
+        charOffset += word.length;
         continue;
       }
 
-      const wordRatio = word.length / Math.max(totalChars, 1);
-      const startRatio = charOffset / Math.max(totalChars, 1);
+      const wordRatio = word.length / totalChars;
+      const startRatio = charOffset / totalChars;
 
       const wordX = Number((itemBbox.x + itemBbox.width * startRatio).toFixed(2));
       const wordWidth = Number((itemBbox.width * wordRatio).toFixed(2));
 
       tokens.push(
-        this.createTokenFromText(word, {
-          x: Math.min(wordX, 96),
+        this.createTokenFromText(clean, {
+          x: Math.min(Math.max(wordX, 0.5), 96),
           y: itemBbox.y,
           width: Math.max(wordWidth, 1.8),
           height: itemBbox.height,
         })
       );
 
-      charOffset += word.length + 1;
+      charOffset += word.length;
     }
 
     return tokens;

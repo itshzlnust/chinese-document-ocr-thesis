@@ -377,6 +377,8 @@ export const DocumentReader: React.FC<DocumentReaderProps> = ({
                       const isHovered = hoveredTokenId === token.id;
                       const isActive = activeTokenId === token.id;
 
+                      const isChineseChar = /[\u4e00-\u9fa5]/.test(token.chinese);
+
                       return (
                         <div
                           key={token.id}
@@ -387,10 +389,14 @@ export const DocumentReader: React.FC<DocumentReaderProps> = ({
                           onClick={(e) => {
                             onSelectToken(token, { x: e.clientX, y: e.clientY });
                           }}
-                          className={`absolute cursor-pointer rounded transition-all duration-150 flex items-center justify-center ${
+                          className={`absolute cursor-pointer rounded-[3px] transition-all duration-100 flex items-center justify-center ${
                             isActive || isHovered
-                              ? 'border-2 border-red-500 bg-red-500/35 shadow-lg shadow-red-500/50 scale-105 z-30 bbox-active'
-                              : 'border border-amber-400/60 bg-amber-400/15 hover:border-red-400 hover:bg-red-500/25'
+                              ? isChineseChar
+                                ? 'border-2 border-red-500 bg-red-500/30 shadow-md shadow-red-950/60 z-30 ring-1 ring-red-400/50'
+                                : 'border-2 border-indigo-400 bg-indigo-500/30 shadow-md shadow-indigo-950/60 z-30 ring-1 ring-indigo-400/50'
+                              : isChineseChar
+                              ? 'border border-red-500/40 bg-red-500/8 hover:border-red-400 hover:bg-red-500/25'
+                              : 'border border-indigo-400/40 bg-indigo-500/8 hover:border-indigo-300 hover:bg-indigo-500/25'
                           }`}
                           style={{
                             left: `${token.bbox.x}%`,
@@ -401,8 +407,9 @@ export const DocumentReader: React.FC<DocumentReaderProps> = ({
                         >
                           {/* Tooltip character label on hover */}
                           {(isHovered || isActive) && (
-                            <span className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-red-600 text-white text-[10px] font-bold font-chinese whitespace-nowrap shadow-md z-40">
-                              {token.chinese} ({token.pinyin})
+                            <span className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-100 text-[10px] font-bold font-chinese whitespace-nowrap shadow-xl z-40 flex items-center gap-1">
+                              <span className="text-red-400">{token.chinese}</span>
+                              <span className="text-slate-400 font-normal">({token.pinyin})</span>
                             </span>
                           )}
                         </div>

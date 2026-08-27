@@ -115,6 +115,127 @@ export const DICTIONARY_DATABASE: Record<string, WordInfo> = {
       }
     ]
   },
+  '工程': {
+    id: 'dict-gongcheng',
+    chinese: '工程',
+    pinyin: 'gōng chéng',
+    hskLevel: 3,
+    radical: '工 (Pekerjaan / Work)',
+    indonesianDef: 'Rekayasa; teknik; proyek konstruksi/teknik.',
+    englishDef: 'Engineering; engineering project.',
+    grammarNotes: 'Kata benda. Contoh: 土木工程 (Teknik Sipil), 公路工程 (Rekayasa Jalan Raya).',
+    examples: [{ id: 'ex-gc-1', chinese: '这是市政公路工程项目。', pinyin: 'Zhè shì shìzhèng gōnglù gōngchéng xiàngmù.', indonesian: 'Ini adalah proyek rekayasa jalan raya kota.' }]
+  },
+  '检测': {
+    id: 'dict-jiance',
+    chinese: '检测',
+    pinyin: 'jiǎn cè',
+    hskLevel: 4,
+    radical: '木 (Kayu / Wood)',
+    indonesianDef: 'Pengujian; inspeksi; pemeriksaan teknis; deteksi.',
+    englishDef: 'To test; inspection; detection.',
+    grammarNotes: 'Kata kerja / kata benda. Digunakan dalam konteks uji mutu / inspeksi keselamatan struktur.',
+    examples: [{ id: 'ex-jc-1', chinese: '对桥梁结构进行定期检测。', pinyin: 'Duì qiáoliáng jiégòu jìnxíng dìngqī jiǎncè.', indonesian: 'Melakukan inspeksi berkala pada struktur jembatan.' }]
+  },
+  '报告': {
+    id: 'dict-baogao',
+    chinese: '报告',
+    pinyin: 'bào gào',
+    hskLevel: 2,
+    radical: '卜 (Ramalan / Divination)',
+    indonesianDef: 'Laporan; melaporkan; presentasi hasil.',
+    englishDef: 'Report; to report.',
+    grammarNotes: 'Kata benda / kata kerja. Contoh: 检测报告 (Laporan Hasil Pengujian/Inspeksi).',
+    examples: [{ id: 'ex-bg-1', chinese: '这是本次检测的最终报告。', pinyin: 'Zhè shì běn cì jiǎncè de zuìzhōng bàogào.', indonesian: 'Ini adalah laporan akhir dari pengujian kali ini.' }]
+  },
+  '项目': {
+    id: 'dict-xiangmu',
+    chinese: '项目',
+    pinyin: 'xiàng mù',
+    hskLevel: 3,
+    radical: '页 (Halaman / Leaf)',
+    indonesianDef: 'Proyek; mata uji; item; bagian program.',
+    englishDef: 'Project; item; program.',
+    grammarNotes: 'Kata benda. Sering muncul di dokumen resmi: 项目名称 (Nama Proyek), 检测项目 (Item Pengujian).',
+    examples: [{ id: 'ex-xm-1', chinese: '项目名称必须清晰填写。', pinyin: 'Xiàngmù míngchēng bìxū qīngxī tiánxiě.', indonesian: 'Nama proyek harus diisi dengan jelas.' }]
+  },
+  '名称': {
+    id: 'dict-mingcheng',
+    chinese: '名称',
+    pinyin: 'míng chēng',
+    hskLevel: 3,
+    radical: '口 (Mulut / Mouth)',
+    indonesianDef: 'Nama (formal); sebutan; judul resmi.',
+    englishDef: 'Name (of an organization, project, product); title.',
+    grammarNotes: 'Kata benda formal untuk nama objek, organisasi, atau proyek resmi.',
+    examples: [{ id: 'ex-mc-1', chinese: '请输入单位名称。', pinyin: 'Qǐng shūrù dānwèi míngchēng.', indonesian: 'Silakan masukkan nama instansi/perusahaan.' }]
+  },
+  '桥梁': {
+    id: 'dict-qiaoliang',
+    chinese: '桥梁',
+    pinyin: 'qiáo liáng',
+    hskLevel: 4,
+    radical: '木 (Kayu / Wood)',
+    indonesianDef: 'Jembatan; penghubung.',
+    englishDef: 'Bridge; connection.',
+    grammarNotes: 'Kata benda. Dalam teknik sipil mengacu pada struktur fisik jembatan.',
+    examples: [{ id: 'ex-ql-1', chinese: '桥梁技术状况评定良好。', pinyin: 'Qiáoliáng jìshù zhuàngkuàng píngdìng liánghǎo.', indonesian: 'Evaluasi kondisi teknis jembatan dinilai baik.' }]
+  },
+  '混凝土': {
+    id: 'dict-hunningtu',
+    chinese: '混凝土',
+    pinyin: 'hùn níng tǔ',
+    hskLevel: 5,
+    radical: '氵 (Air / Water)',
+    indonesianDef: 'Beton (material konstruksi campuran semen, pasir, kerikil, dan air).',
+    englishDef: 'Concrete.',
+    grammarNotes: 'Kata benda material konstruksi. Istilah umum dalam teknik sipil.',
+    examples: [{ id: 'ex-hnt-1', chinese: '检查混凝土强度和裂缝。', pinyin: 'Jiǎnchá hùnníngtǔ qiángdù hé lièfèng.', indonesian: 'Memeriksa kekuatan beton dan retakan.' }]
+  },
+  '裂缝': {
+    id: 'dict-liefeng',
+    chinese: '裂缝',
+    pinyin: 'liè fèng',
+    hskLevel: 4,
+    radical: '衣 (Pakaian / Clothes)',
+    indonesianDef: 'Retakan; celah; rekahan.',
+    englishDef: 'Crack; fissure; cleft.',
+    grammarNotes: 'Kata benda. Contoh: 混凝土裂缝 (Retakan beton).',
+    examples: [{ id: 'ex-lf-1', chinese: '对裂缝进行专项维修。', pinyin: 'Duì lièfèng jìnxíng zhuānxiàng wéixiū.', indonesian: 'Melakukan perbaikan khusus pada retakan.' }]
+  },
+  '公路': {
+    id: 'dict-gonglu',
+    chinese: '公路',
+    pinyin: 'gōng lù',
+    hskLevel: 2,
+    radical: '八 (Delapan / Eight)',
+    indonesianDef: 'Jalan raya; jalan umum; jalan tol.',
+    englishDef: 'Highway; public road.',
+    grammarNotes: 'Kata benda. Mengacu pada jaringan jalan darat.',
+    examples: [{ id: 'ex-gl-1', chinese: '高速公路检测非常重要。', pinyin: 'Gāosù gōnglù jiǎncè fēicháng zhòngyào.', indonesian: 'Inspeksi jalan tol sangatlah penting.' }]
+  },
+  '安全': {
+    id: 'dict-anquan',
+    chinese: '安全',
+    pinyin: 'ān quán',
+    hskLevel: 2,
+    radical: '宀 (Atap / Roof)',
+    indonesianDef: 'Aman; keselamatan; sekuritas.',
+    englishDef: 'Safe; secure; safety; security.',
+    grammarNotes: 'Kata sifat / kata benda. Contoh: 结构安全 (Keselamatan struktur).',
+    examples: [{ id: 'ex-aq-1', chinese: '确保结构运行安全。', pinyin: 'Quèbǎo jiégòu yùnxíng ānquán.', indonesian: 'Memastikan keselamatan pengoperasian struktur.' }]
+  },
+  '结论': {
+    id: 'dict-jielun',
+    chinese: '结论',
+    pinyin: 'jié lùn',
+    hskLevel: 3,
+    radical: '纟 (Sutra / Silk)',
+    indonesianDef: 'Kesimpulan; hasil konklusi.',
+    englishDef: 'Conclusion; verdict.',
+    grammarNotes: 'Kata benda. Contoh: 检测结论 (Kesimpulan hasil pemeriksaan).',
+    examples: [{ id: 'ex-jl-1', chinese: '检测结论符合标准要求。', pinyin: 'Jiǎncè jiélùn fúhé biāozhǔn yāoqiú.', indonesian: 'Kesimpulan inspeksi memenuhi persyaratan standar.' }]
+  },
   '别': {
     id: 'dict-bie',
     chinese: '别',

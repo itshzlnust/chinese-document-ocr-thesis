@@ -131,9 +131,9 @@ def _load_monkey_model():
     model_src = LOCAL_MODEL_PATH if Path(LOCAL_MODEL_PATH).exists() else MODELSCOPE_MODEL_ID
     logger.info(f"Loading MonkeyOCR v2-B from: {model_src}")
 
-    from transformers import AutoModelForCausalLM, AutoModelForVision2Seq, AutoModel
+    from transformers import AutoModelForCausalLM, AutoModel
 
-    loaders = [AutoModelForCausalLM, AutoModelForVision2Seq, AutoModel, Qwen2VLForConditionalGeneration]
+    loaders = [AutoModelForCausalLM, AutoModel, Qwen2VLForConditionalGeneration]
     for loader in loaders:
         try:
             logger.info(f"Attempting loader {loader.__name__} ...")
@@ -448,6 +448,21 @@ class OCRResponse(BaseModel):
 # ─────────────────────────────────────────────────────────────
 # API Routes
 # ─────────────────────────────────────────────────────────────
+
+@app.get("/")
+async def root():
+    return {
+        "status": "online",
+        "service": "MonkeyOCR v2-B & Helsinki-NLP Translation API",
+        "docs_url": "/docs",
+        "health_url": "/api/v1/health",
+        "endpoints": {
+            "ocr_identify": "POST /api/v1/ocr-identify",
+            "translate": "POST /api/v1/translate",
+            "health": "GET /api/v1/health"
+        }
+    }
+
 
 @app.get("/api/v1/health")
 async def health():
