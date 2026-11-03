@@ -1,11 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { OCRDocument, DocumentWordToken } from '../types';
-import { SAMPLE_DOCUMENTS } from '../data/sample_documents';
 import { OCREngine } from '../services/ocrEngine';
 import {
   Upload, FileText, ZoomIn, ZoomOut, RotateCcw,
   MousePointer, ChevronLeft, ChevronRight, Search, FileCode,
-  Eye, EyeOff, CheckCircle2, UploadCloud, XCircle, ArrowRight, Maximize2, RefreshCw
+  Eye, EyeOff, CheckCircle2, UploadCloud, XCircle, Maximize2, RefreshCw,
+  Camera
 } from 'lucide-react';
 
 interface DocumentReaderProps {
@@ -95,64 +95,77 @@ export const DocumentReader: React.FC<DocumentReaderProps> = ({
     }, 500);
   };
 
-  const handleSelectSample = (doc: OCRDocument) => {
-    setIsLoading(true);
-    setIsIdentifying(false);
-    setLoadingText('Loading Sample Document...');
-    setTimeout(() => {
-      setSelectedDoc(doc);
-      setIsIdentifying(false); // Loaded cleanly without bounding boxes initially
-      setIsLoading(false);
-    }, 300);
-  };
-
   const handleClearDocument = () => {
     setSelectedDoc(null);
     setIsIdentifying(false);
-    setZoomLevel(1);
+    setZoomLevel(0.85);
   };
 
   return (
     <div className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-950 font-sans">
       {/* Top Bar Controls */}
-      <div className="h-16 px-6 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between z-20 shrink-0">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
+      <div className="h-16 px-4 sm:px-6 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between z-20 shrink-0 gap-2">
+        <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
+          <div className="flex items-center space-x-2 min-w-0">
             {selectedDoc?.type === 'pdf' ? (
-              <FileCode className="w-5 h-5 text-rose-500" />
+              <FileCode className="w-5 h-5 text-rose-500 shrink-0" />
             ) : (
-              <FileText className="w-5 h-5 text-rose-500" />
+              <FileText className="w-5 h-5 text-rose-500 shrink-0" />
             )}
-            <div className="flex items-center space-x-2">
-              <h2 className="font-bold text-slate-100 text-sm tracking-wide max-w-xs truncate">
+            <div className="flex items-center space-x-2 min-w-0">
+              <h2 className="font-bold text-slate-100 text-xs sm:text-sm tracking-wide max-w-[140px] sm:max-w-xs truncate">
                 {selectedDoc ? selectedDoc.title : 'No Document Loaded'}
               </h2>
               {selectedDoc && (
-                <span className="px-1.5 py-0.5 text-[10px] font-mono bg-rose-500/15 text-rose-300 border border-rose-500/30 rounded uppercase">
+                <span className="px-1.5 py-0.5 text-[10px] font-mono bg-rose-500/15 text-rose-300 border border-rose-500/30 rounded uppercase shrink-0">
                   {selectedDoc.type}
                 </span>
               )}
             </div>
           </div>
 
-          <div className="h-4 w-[1px] bg-slate-800" />
+          <div className="h-4 w-[1px] bg-slate-800 hidden sm:block" />
 
-          {/* Sample Selector */}
-          <div className="flex items-center space-x-2 text-xs">
-            <span className="text-slate-400">Sample:</span>
-            {SAMPLE_DOCUMENTS.map((doc) => (
+          {/* Quick Camera & File Upload in Top Bar */}
+          <div className="flex items-center space-x-1.5">
+            <label
+              className="px-2.5 py-1 rounded-xl bg-rose-600 hover:bg-rose-500 text-white cursor-pointer border border-rose-500 flex items-center gap-1.5 text-xs font-semibold shadow transition-all shrink-0"
+              title="Take Photo with Mobile Camera"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Camera</span>
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </label>
+
+            <label
+              className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer border border-slate-700 flex items-center gap-1.5 text-xs font-semibold transition-all shrink-0"
+              title="Upload Image or PDF File"
+            >
+              <Upload className="w-3.5 h-3.5 text-slate-400" />
+              <span className="hidden sm:inline">Upload</span>
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </label>
+
+            {selectedDoc && (
               <button
-                key={doc.id}
-                onClick={() => handleSelectSample(doc)}
-                className={`px-2.5 py-1 rounded-lg border text-xs font-medium transition-all ${
-                  selectedDoc?.id === doc.id
-                    ? 'bg-rose-500/20 border-rose-500/50 text-rose-300'
-                    : 'bg-slate-800/60 border-slate-700 text-slate-300 hover:text-white'
-                }`}
+                onClick={handleClearDocument}
+                className="p-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-rose-400 border border-slate-700 transition-colors"
+                title="Close Document"
               >
-                {doc.title.split(' ')[1] || doc.title}
+                <XCircle className="w-4 h-4" />
               </button>
-            ))}
+            )}
           </div>
         </div>
 
@@ -258,10 +271,24 @@ export const DocumentReader: React.FC<DocumentReaderProps> = ({
             </>
           )}
 
+          {/* Camera Button */}
+          <label className="p-2 sm:px-3 sm:py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center space-x-1.5 cursor-pointer shadow-lg transition-all hover:scale-105" title="Take Photo with Mobile Camera">
+            <Camera className="w-4 h-4 text-white" />
+            <span className="hidden sm:inline">Camera</span>
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+          </label>
+
           {/* Upload Button */}
-          <label className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-white text-slate-900 text-xs font-semibold flex items-center space-x-2 cursor-pointer shadow-lg transition-all hover:scale-105">
+          <label className="px-3 sm:px-4 py-2 rounded-xl bg-slate-100 hover:bg-white text-slate-900 text-xs font-semibold flex items-center space-x-2 cursor-pointer shadow-lg transition-all hover:scale-105">
             <Upload className="w-4 h-4 text-slate-900" />
-            <span>Upload Document</span>
+            <span className="hidden sm:inline">Upload Document</span>
+            <span className="sm:hidden">Upload</span>
             <input
               type="file"
               accept="image/*,application/pdf"
@@ -293,25 +320,37 @@ export const DocumentReader: React.FC<DocumentReaderProps> = ({
 
         {/* ── STATE 1: BLANK / EMPTY WORKSPACE (No Document Loaded) ── */}
         {!selectedDoc && !isLoading && (
-          <div className="max-w-xl w-full p-8 rounded-3xl glass-panel border border-slate-800 text-center space-y-6 shadow-2xl animate-in zoom-in-95 duration-200 my-auto">
+          <div className="max-w-md w-full p-6 sm:p-8 rounded-3xl glass-panel border border-slate-800 text-center space-y-6 shadow-2xl animate-in zoom-in-95 duration-200 my-auto mx-4">
             <div className="w-20 h-20 mx-auto rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-inner">
               <UploadCloud className="w-10 h-10 text-rose-400 animate-pulse" />
             </div>
 
             <div className="space-y-2">
               <h3 className="text-xl font-bold text-slate-100">
-                Upload a Document or Choose a Sample
+                Upload Document or Take Photo
               </h3>
-              <p className="text-xs text-slate-400 leading-relaxed max-w-md mx-auto">
-                Upload a <strong>PDF</strong> document or image (<strong>PNG/JPG</strong>). The document will be centered on screen, and you can click <strong>Identify Characters</strong> to detect word-level OCR tokens.
+              <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
+                Capture printed documents directly with your mobile camera, or upload an existing PDF / image from your device.
               </p>
             </div>
 
-            {/* Big Primary Upload Button */}
-            <div className="flex flex-col items-center gap-3">
-              <label className="w-full py-4 rounded-2xl bg-slate-100 hover:bg-white text-slate-900 font-bold text-sm flex items-center justify-center space-x-2 cursor-pointer shadow-xl transition-all hover:scale-[1.02]">
-                <Upload className="w-5 h-5 text-slate-900" />
-                <span>Choose PDF / Image File</span>
+            {/* Mobile & Desktop Action Buttons */}
+            <div className="flex flex-col gap-3 w-full">
+              <label className="w-full py-3.5 px-4 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm flex items-center justify-center space-x-2.5 cursor-pointer shadow-xl shadow-rose-950/40 transition-all hover:scale-[1.02]">
+                <Camera className="w-5 h-5 text-white" />
+                <span>Take Photo with Camera</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+
+              <label className="w-full py-3.5 px-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-slate-100 font-bold text-sm flex items-center justify-center space-x-2.5 cursor-pointer border border-slate-700 shadow-xl transition-all hover:scale-[1.02]">
+                <Upload className="w-5 h-5 text-slate-300" />
+                <span>Choose Image or PDF File</span>
                 <input
                   type="file"
                   accept="image/*,application/pdf"
@@ -319,30 +358,6 @@ export const DocumentReader: React.FC<DocumentReaderProps> = ({
                   className="hidden"
                 />
               </label>
-
-              {/* Sample Document Quick Options */}
-              <div className="pt-2 w-full">
-                <span className="text-[11px] text-slate-500 block mb-2 font-medium">
-                  — OR CHOOSE A SAMPLE DOCUMENT —
-                </span>
-                <div className="grid grid-cols-2 gap-3">
-                  {SAMPLE_DOCUMENTS.map((doc) => (
-                    <button
-                      key={doc.id}
-                      onClick={() => handleSelectSample(doc)}
-                      className="p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-left transition-all group flex items-center justify-between"
-                    >
-                      <div>
-                        <p className="text-xs font-semibold text-slate-200 group-hover:text-rose-300">
-                          {doc.title}
-                        </p>
-                        <p className="text-[10px] text-slate-500 uppercase">{doc.type}</p>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-rose-400 transition-colors" />
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         )}

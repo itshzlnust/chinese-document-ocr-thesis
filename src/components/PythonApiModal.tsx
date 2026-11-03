@@ -64,7 +64,7 @@ export const PythonApiModal: React.FC<PythonApiModalProps> = ({ isOpen, onClose 
     ];
 
     const pythonScript = `# LexiDoc Backend API — FastAPI & MonkeyOCR v2 / OPUS-MT
-# Thesis Proposal: Development of LexiDoc (Ilham Ahmad Fahriji - 10231042)
+# System Backend Service for Document OCR and Translation
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
@@ -123,7 +123,7 @@ async def translate_document(file: UploadFile = File(...), source_lang: str = Fo
                                 </span>
                             </div>
                             <p className="text-xs text-slate-400">
-                                System Architecture Specifications per Undergraduate Thesis Proposal (Ilham Ahmad Fahriji - 10231042)
+                                System Architecture & Technical Integration Specifications
                             </p>
                         </div>
                     </div>

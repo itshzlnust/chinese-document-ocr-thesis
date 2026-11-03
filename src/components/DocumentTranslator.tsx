@@ -5,7 +5,7 @@ import {
   Globe, AlertCircle, Printer, FileCheck,
   ArrowLeftRight, X, BookOpen, AlignLeft,
   Search, ChevronRight, Bookmark, Volume2, Sun, Moon,
-  ListTree
+  ListTree, Camera
 } from 'lucide-react';
 import {
   NMTTranslationService,
@@ -152,104 +152,6 @@ export const DocumentTranslator: React.FC<DocumentTranslatorProps> = ({ onAddFla
         setPageRangeEnd(Math.min(count, 5));
       });
     }
-  };
-
-  // 1. One-click Sample: Chinese Academic Document (Pak Henokh's exact specification)
-  const handleLoadSampleChineseDocument = () => {
-    const sampleChineseText = `基于深度学习的中文文档解析与双语对照学习系统
-
-作者：Ilham Ahmad Fahriji (NIM: 10231042)
-指导教师：Henokh Lugo Hariyanto, S.Si., M.Sc.
-Institut Teknologi Kalimantan (ITK)
-
-第一章：研究背景与意义
-
-1.1 汉字学习的现状与挑战
-汉语是世界上使用人数最多的语言之一，具有悠久的历史和独特的表意文字系统。汉字（Hanzi）与拉丁文字不同，它属于表意文字，字形与读音之间没有直接的拼读对应关系。因此，学习者在阅读中文文档时，不仅需要掌握汉字的字形与含义，还需要借助汉语拼音来辅助正确发音。
-
-此外，在数字化转型的背景下，许多珍贵的学术文献和扫描文档仍缺乏连贯语境翻译。学习者在面对这些扫描文档时，面临文字难以提取、词汇查询困难以及缺乏双语排版的问题。
-
-Table 1
-| 模块名称 | 算法模型 | 字符识别精度 | 响应延迟 | 版面保真度 |
-| 文档版面解析 | MonkeyOCR v2 | 98.6% | 120ms | 完整对齐 |
-| 神经机器翻译 | Helsinki-NLP OPUS-MT | BLEU 38.4 | 85ms | 逐句对照 |
-| 记忆复习调度 | SuperMemo-2 (SM2) | 自适应间隔 | <10ms | 动态生成 |
-
-1.2 本文研究目标
-针对现有中文学习平台操作割裂、无法在完整文档语境下进行即时对照翻译的问题，本课题设计并实现了 LexiDoc 学习空间：
-• 采用 MonkeyOCR v2 深度学习框架进行高精度文档版面解析与字符识别。
-• 集成 Helsinki-NLP OPUS-MT 预训练神经机器翻译模型，实现逐行逐句的高质量双语排版。
-• 结合 SuperMemo-2 (SM2) 自适应间隔重复算法，实现生词与来源句一键加入记忆卡片。
-
-参考文献：
-[1] Vaswani, A., et al. (2017). Attention is all you need. Advances in Neural Information Processing Systems.
-[2] Wozniak, P. A. (1990). Optimization of learning: A new approach to spaced repetition.`;
-
-    const blob = new Blob([sampleChineseText], { type: 'text/plain;charset=utf-8' });
-    const file = new File([blob], 'LexiDoc_Mandarin_Academic_Paper.txt', { type: 'text/plain' });
-    setDocFile(file);
-    setDirection('zh-en'); // Mandarin to English
-    setDocPageCount(1);
-    setDocResult(null);
-    setDocError(null);
-  };
-
-  // 2. One-click Sample: Pak Henokh's exact academic document reference with Table 1
-  const handleLoadSupervisorSample = () => {
-    const supervisorSampleText = `学业制度概要
-Summary of the Academic System
-
-学业制度
-Academic System
-
-Table 1
-| 培养层次 | 硕士生 | 博士生 | 硕博连读 | 备注 |
-| 学期学制 (2003年秋季起) | 硕士标准注册 | 博士标准注册 | 连读标准注册 | 学费缴纳标准 |
-| 1~4学期注册类型 | 标准学籍注册 | 标准学籍注册 | 标准学籍注册 | 全额学费 |
-| 5~8学期注册类型 | 科研学籍注册 | 基础学费标准 | 标准学籍注册 | 科研阶段 |
-| 9~10学期注册类型 | 科研学籍注册 | 科研学籍注册 | 基础学费标准 | 论文撰写 |
-
-• 各培养阶段注册类型与学分要求 (适用于2019学年及之前入学的学生)
-• 硕博连读研究生培养阶段说明：1-8学期为标准注册，9-10学期缴纳基础学费，第11学期起为科研注册
-• 各类注册学费标准：标准注册缴纳全额学费，基础学费约占总额30%，科研注册约占总额10%`;
-
-    const blob = new Blob([supervisorSampleText], { type: 'text/plain;charset=utf-8' });
-    const file = new File([blob], 'Supervisor_Academic_System_Sample.txt', { type: 'text/plain' });
-    setDocFile(file);
-    setDirection('zh-en');
-    setDocPageCount(1);
-    setDocResult(null);
-    setDocError(null);
-  };
-
-  // 3. One-click Sample: English LexiDoc Thesis Proposal
-  const handleLoadSampleProposal = () => {
-    const sampleText = `DEVELOPMENT OF LEXIDOC: A DOCUMENT-BASED CHINESE-ENGLISH LEARNING SPACE FOR READING, TRANSLATING, AND REVIEWING VOCABULARY
-
-By: Ilham Ahmad Fahriji (NIM: 10231042)
-Institut Teknologi Kalimantan
-
-CHAPTER 1: INTRODUCTION
-
-1.1 Background
-Mandarin Chinese is one of the most widely spoken and studied languages in the world, with close to 1.4 billion people using it as a native or second language. It is written with hanzi, or Chinese characters, which are logographic. Unlike alphabetic languages such as English, a single character can represent an entire morpheme or meaning rather than merely a sound.
-
-1.2 Problem Statements
-Currently, the learner workflow remains severely fragmented, as users must continuously switch between standalone scanning applications, external translation tools, and separate flashcard platforms, which introduces high operational friction.
-
-1.3 Research Objectives
-To address this operational limitation, this undergraduate thesis designs and implements LexiDoc:
-1. To develop an interactive web platform that integrates MonkeyOCR v2 to perform document parsing on documents written in Chinese and English.
-2. To integrate pretrained OPUS-MT models for real-time bidirectional translation with layout preservation.
-3. To implement a one-click flashcard generator connected to an adaptive SuperMemo-2 (SM2) scheduling engine.`;
-
-    const blob = new Blob([sampleText], { type: 'text/plain;charset=utf-8' });
-    const file = new File([blob], 'LexiDoc_Proposal_Sample.txt', { type: 'text/plain' });
-    setDocFile(file);
-    setDirection('en-zh'); // English to Mandarin
-    setDocPageCount(1);
-    setDocResult(null);
-    setDocError(null);
   };
 
   const handleTranslateDocument = useCallback(async () => {
@@ -689,7 +591,7 @@ To address this operational limitation, this undergraduate thesis designs and im
                 >
                   <input
                     type="file"
-                    accept="application/pdf,text/plain,text/markdown"
+                    accept="application/pdf,image/*,text/plain,text/markdown"
                     onChange={handleDocFileChange}
                     className="hidden"
                   />
@@ -731,29 +633,33 @@ To address this operational limitation, this undergraduate thesis designs and im
                   <div className="flex items-center gap-2">
                     {!docFile && (
                       <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          onClick={handleLoadSampleChineseDocument}
-                          className="px-2.5 py-1 rounded-lg bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-xs text-red-200 font-medium transition-colors"
-                          title="Original Chinese thesis paper with sections, lists, and Latin citations"
+                        <label
+                          className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white cursor-pointer border border-rose-500 flex items-center gap-1.5 text-xs font-semibold shadow transition-all shrink-0"
+                          title="Take Photo with Mobile Camera"
                         >
-                          🇨🇳 Chinese Thesis Paper
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleLoadSupervisorSample}
-                          className="px-2.5 py-1 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-xs text-emerald-200 font-medium transition-colors"
-                          title="Supervisor's exact Academic System reference document with Table 1"
+                          <Camera className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline">Camera</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            capture="environment"
+                            onChange={handleDocFileChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <label
+                          className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer border border-slate-700 flex items-center gap-1.5 text-xs font-semibold transition-all shrink-0"
+                          title="Choose File / PDF"
                         >
-                          🎓 Academic System (Table 1)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleLoadSampleProposal}
-                          className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 hover:text-white transition-colors"
-                        >
-                          🇬🇧 Thesis Proposal (EN)
-                        </button>
+                          <Upload className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="hidden sm:inline">Choose File</span>
+                          <input
+                            type="file"
+                            accept="application/pdf,image/*,text/plain,text/markdown"
+                            onChange={handleDocFileChange}
+                            className="hidden"
+                          />
+                        </label>
                       </div>
                     )}
 
@@ -887,31 +793,34 @@ To address this operational limitation, this undergraduate thesis designs and im
                 </div>
                 <div className="space-y-1.5 max-w-md">
                   <h3 className="text-base font-bold text-slate-100">
-                    Interlinear Document Translation (Supervisor Specification)
+                    Interlinear Document Translation
                   </h3>
                   <p className="text-xs text-slate-400 leading-relaxed">
                     The engine places the translated output <strong>directly beneath each sentence or paragraph</strong> of the original document. Pure Latin lines, names, numbers, and citations are preserved without redundant translation.
                   </p>
                 </div>
-                <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-                  <button
-                    onClick={handleLoadSampleChineseDocument}
-                    className="px-4 py-2 rounded-xl bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-xs text-red-200 font-semibold flex items-center gap-2 shadow"
-                  >
-                    <span>🇨🇳 Try Chinese Thesis Paper</span>
-                  </button>
-                  <button
-                    onClick={handleLoadSupervisorSample}
-                    className="px-4 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-xs text-emerald-200 font-semibold flex items-center gap-2 shadow"
-                  >
-                    <span>🎓 Try Supervisor Academic System (Table 1)</span>
-                  </button>
-                  <button
-                    onClick={handleLoadSampleProposal}
-                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs text-slate-300 hover:text-white font-medium flex items-center gap-2 shadow"
-                  >
-                    <span>🇬🇧 Try LexiDoc Proposal (EN)</span>
-                  </button>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 w-full max-w-sm">
+                  <label className="w-full sm:w-auto px-5 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs flex items-center justify-center gap-2 shadow cursor-pointer transition-all hover:scale-105">
+                    <Camera className="w-4 h-4 text-white" />
+                    <span>Take Photo with Camera</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleDocFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                  <label className="w-full sm:w-auto px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-semibold text-xs flex items-center justify-center gap-2 shadow cursor-pointer transition-all hover:scale-105">
+                    <Upload className="w-4 h-4 text-slate-300" />
+                    <span>Choose File / PDF</span>
+                    <input
+                      type="file"
+                      accept="application/pdf,image/*,text/plain,text/markdown"
+                      onChange={handleDocFileChange}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
               </div>
             )}

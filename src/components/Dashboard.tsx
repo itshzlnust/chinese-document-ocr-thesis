@@ -1,11 +1,16 @@
 import React from 'react';
 import {
-  BookOpen, Languages, Layers, Upload, Clock,
-  CheckCircle2, ArrowRight,
-  BarChart3, Award, FolderOpen
+  BookOpen,
+  Languages,
+  Layers,
+  Sparkles,
+  ArrowRight,
+  TrendingUp,
+  Brain,
+  Camera,
+  BarChart3,
 } from 'lucide-react';
 import { ActiveTab, Flashcard } from '../types';
-import { SAMPLE_DOCUMENTS } from '../data/sample_documents';
 
 interface DashboardProps {
   onNavigate: (tab: ActiveTab) => void;
@@ -23,24 +28,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, flashcards }) 
   const masteredCount = flashcards.filter((c) => c.masteryLevel >= 3).length;
 
   return (
-    <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-950 p-6 md:p-8 space-y-8 font-sans">
+    <div className="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-950 p-4 sm:p-6 md:p-8 space-y-6 md:space-y-8 font-sans">
 
-      {/* ── HERO BANNER: LEXIDOC PROPOSAL ALIGNMENT ── */}
+      {/* ── HERO BANNER: LEXIDOC LEARNING SPACE ── */}
       <div className="p-6 md:p-8 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl relative overflow-hidden">
         <div className="absolute right-0 top-0 w-96 h-96 bg-rose-500/5 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800 text-rose-300 border border-rose-500/20 text-xs font-semibold">
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>Undergraduate Thesis Information Systems ITK · Ilham Ahmad Fahriji (10231042)</span>
-          </div>
-
           <h1 className="text-2xl md:text-3xl font-extrabold text-slate-100 tracking-tight">
             LexiDoc: Document-Based Chinese-English Learning Space
           </h1>
 
           <p className="text-xs md:text-sm text-slate-300 leading-relaxed">
-            An integrated academic platform for reading scanned Chinese-English documents (<strong>MonkeyOCR v2</strong>),
+            An integrated platform for reading Chinese documents and camera scans (<strong>MonkeyOCR v2</strong>),
             translating multi-page structured documents bidirectionally (<strong>OPUS-MT</strong>),
             and reinforcing long-term vocabulary retention adaptively (<strong>SuperMemo-2 / SM2</strong>).
           </p>
@@ -76,164 +76,174 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, flashcards }) 
 
       {/* ── STATISTICAL OVERVIEW CARDS ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Total Documents */}
-        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2 shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Total Documents
-            </span>
-            <div className="p-2 rounded-xl bg-slate-800 text-rose-400">
-              <FolderOpen className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-slate-100 font-mono">
-            {SAMPLE_DOCUMENTS.length + 1}
-          </div>
-          <p className="text-[11px] text-slate-500">PDFs & scans stored in library</p>
-        </div>
-
-        {/* Total Vocabulary */}
+        {/* Vocabulary Deck */}
         <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2 shadow-lg">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
               Total Vocabulary
             </span>
-            <div className="p-2 rounded-xl bg-slate-800 text-indigo-400">
+            <div className="p-2 rounded-xl bg-slate-800 text-amber-400">
               <Layers className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-slate-100 font-mono">
             {flashcards.length}
           </div>
-          <p className="text-[11px] text-slate-500">Characters saved in flashcard deck</p>
+          <p className="text-[11px] text-slate-500">Hanzi cards in flashcard deck</p>
         </div>
 
-        {/* Cards Due Today (SM2) */}
+        {/* Due for Review Today (SM2) */}
         <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2 shadow-lg">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Due for Review (SM2)
+              Due Today (SM2)
             </span>
-            <div className="p-2 rounded-xl bg-slate-800 text-amber-400">
-              <Clock className="w-4 h-4" />
+            <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400">
+              <Sparkles className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-amber-400 font-mono">
+          <div className="text-2xl font-bold text-rose-400 font-mono">
             {dueCardsCount}
           </div>
-          <p className="text-[11px] text-slate-500">SuperMemo-2 review schedule</p>
+          <p className="text-[11px] text-slate-500">Scheduled for spaced repetition</p>
         </div>
 
         {/* Mastered Vocabulary */}
         <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2 shadow-lg">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Mastered Vocabulary
+              Mastered Words
             </span>
             <div className="p-2 rounded-xl bg-slate-800 text-emerald-400">
-              <Award className="w-4 h-4" />
+              <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="text-2xl font-bold text-emerald-400 font-mono">
             {masteredCount}
           </div>
-          <p className="text-[11px] text-slate-500">Mastery Level ≥ 3 (High Retention)</p>
+          <p className="text-[11px] text-slate-500">Mastery level 3 or higher</p>
+        </div>
+
+        {/* Retention Quality */}
+        <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2 shadow-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Retention Stability
+            </span>
+            <div className="p-2 rounded-xl bg-slate-800 text-indigo-400">
+              <Brain className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-indigo-400 font-mono">
+            {flashcards.length > 0
+              ? `${Math.round((masteredCount / flashcards.length) * 100)}%`
+              : '100%'}
+          </div>
+          <p className="text-[11px] text-slate-500">SM-2 memory retention index</p>
         </div>
       </div>
 
-      {/* ── PERSONAL DOCUMENT LIBRARY ── */}
+      {/* ── WORKSPACE MODULES ── */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold text-slate-100">
-              Document Library
+            <h2 className="text-lg font-bold text-slate-100 tracking-tight">
+              Workspace Modules & Quick Tools
             </h2>
             <p className="text-xs text-slate-400">
-              Digital documents & scans ready for interactive OCR reading and structured interlinear translation
+              Choose a tool to start reading, capturing camera scans, or translating documents
             </p>
           </div>
-          <button
-            onClick={() => onNavigate('reader')}
-            className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-colors"
-          >
-            <Upload className="w-3.5 h-3.5 text-rose-400" />
-            <span>Upload New Document</span>
-          </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Sample Proposal LexiDoc Card */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Card 1: Split-Screen Reader & Camera */}
           <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 shadow-lg space-y-3 transition-all hover:scale-[1.01]">
             <div className="flex items-center justify-between text-xs">
               <span className="px-2 py-0.5 rounded bg-slate-800 text-rose-300 border border-rose-500/30 font-mono text-[10px] uppercase font-bold">
-                Proposal PDF
+                Split-Screen Reader
               </span>
-              <span className="flex items-center gap-1 text-emerald-400 text-[10px] font-mono">
-                <CheckCircle2 className="w-3 h-3" />
-                Completed
-              </span>
+              <Camera className="w-4 h-4 text-rose-400" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-100 text-sm truncate">
-                Undergraduate_Thesis_LexiDoc.pdf
+              <h3 className="font-bold text-slate-100 text-sm">
+                OCR Document Reader & Camera Scanner
               </h3>
-              <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
-                Development of LexiDoc: A Document-Based Chinese-English Learning Space for Reading, Translating, and Reviewing Vocabulary.
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Upload PDFs, choose image files, or take photos directly with your phone camera. Inspect character bounding boxes, stroke order animations, and add words to flashcards.
               </p>
             </div>
             <div className="pt-2 flex items-center justify-between border-t border-slate-800/80 text-xs">
-              <span className="text-[11px] text-slate-500">71 Pages · 1.4 MB</span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => onNavigate('translator')}
-                  className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1"
-                >
-                  <span>Translate</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
+              <span className="text-[11px] text-slate-500">Camera & File Upload</span>
+              <button
+                onClick={() => onNavigate('reader')}
+                className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1"
+              >
+                <span>Launch Reader</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
-          {/* Existing Sample Documents */}
-          {SAMPLE_DOCUMENTS.map((doc) => (
-            <div
-              key={doc.id}
-              className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 shadow-lg space-y-3 transition-all hover:scale-[1.01]"
-            >
-              <div className="flex items-center justify-between text-xs">
-                <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-mono text-[10px] uppercase font-bold">
-                  {doc.type}
-                </span>
-                <span className="flex items-center gap-1 text-emerald-400 text-[10px] font-mono">
-                  <CheckCircle2 className="w-3 h-3" />
-                  Parsed OCR
-                </span>
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-100 text-sm truncate">{doc.title}</h3>
-                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
-                  {doc.fullChineseText || doc.fullIndonesianText}
-                </p>
-              </div>
-              <div className="pt-2 flex items-center justify-between border-t border-slate-800/80 text-xs">
-                <span className="text-[11px] text-slate-500">
-                  {doc.blocks.reduce((s, b) => s + b.tokens.length, 0)} Character Tokens
-                </span>
-                <button
-                  onClick={() => onNavigate('reader')}
-                  className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1"
-                >
-                  <span>Open Reader</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
+          {/* Card 2: Document Translator */}
+          <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 shadow-lg space-y-3 transition-all hover:scale-[1.01]">
+            <div className="flex items-center justify-between text-xs">
+              <span className="px-2 py-0.5 rounded bg-slate-800 text-blue-300 border border-blue-500/30 font-mono text-[10px] uppercase font-bold">
+                Interlinear Translator
+              </span>
+              <Languages className="w-4 h-4 text-blue-400" />
             </div>
-          ))}
+            <div>
+              <h3 className="font-bold text-slate-100 text-sm">
+                Academic Document Translator
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Translate complete documents with structured academic formatting. Generates interlinear text directly beneath each line, with clean Word (.doc) and PDF export.
+              </p>
+            </div>
+            <div className="pt-2 flex items-center justify-between border-t border-slate-800/80 text-xs">
+              <span className="text-[11px] text-slate-500">Bidirectional (EN ⇄ ZH)</span>
+              <button
+                onClick={() => onNavigate('translator')}
+                className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1"
+              >
+                <span>Translate Document</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Card 3: SM-2 Spaced Repetition Flashcards */}
+          <div className="p-5 rounded-2xl bg-slate-900/70 border border-slate-800 hover:border-slate-700 shadow-lg space-y-3 transition-all hover:scale-[1.01]">
+            <div className="flex items-center justify-between text-xs">
+              <span className="px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-amber-500/30 font-mono text-[10px] uppercase font-bold">
+                SM-2 Review
+              </span>
+              <Brain className="w-4 h-4 text-amber-400" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-100 text-sm">
+                Vocabulary Hub & SM2 Scheduling
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                Review Hanzi flashcards with SuperMemo-2 adaptive intervals, stroke order practice with HanziVG animations, audio pronunciation, and source sentences.
+              </p>
+            </div>
+            <div className="pt-2 flex items-center justify-between border-t border-slate-800/80 text-xs">
+              <span className="text-[11px] text-slate-500">{dueCardsCount} due today</span>
+              <button
+                onClick={() => onNavigate('flashcards')}
+                className="text-xs text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1"
+              >
+                <span>Start Review</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── ARCHITECTURAL COMPLIANCE INFO (TABLE 3.9) ── */}
+      {/* ── TECHNICAL SPECIFICATIONS ── */}
       <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -242,7 +252,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, flashcards }) 
               LexiDoc Architecture & Technical Specifications
             </h3>
           </div>
-          <span className="text-[11px] text-slate-500 font-mono">Table 3.9 Tech Stack</span>
+          <span className="text-[11px] text-slate-500 font-mono">Core Engines</span>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">

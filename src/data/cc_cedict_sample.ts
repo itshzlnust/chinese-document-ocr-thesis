@@ -132,14 +132,14 @@ export const DICTIONARY_DATABASE: Record<string, WordInfo> = {
     radical: '亻 (Human / Person)',
     indonesianDef: 'Penulis; pengarang; pembuat karya ilmiah.',
     englishDef: 'Author; writer.',
-    grammarNotes: 'Noun. Appears on academic papers: 作者：Ilham Ahmad Fahriji.',
+    grammarNotes: 'Noun. Frequently used in academic documents and articles.',
     examples: [
       {
         id: 'ex-zz-1',
-        chinese: '这篇毕业设计论文的作者是 Ilham Ahmad Fahriji。',
-        pinyin: 'Zhè piān bìyè shèjì lùnwén de zuòzhě shì Ilham Ahmad Fahriji.',
-        indonesian: 'Penulis skripsi tugas akhir ini adalah Ilham Ahmad Fahriji.',
-        english: 'The author of this undergraduate thesis is Ilham Ahmad Fahriji.'
+        chinese: '这本文档的作者分享了汉语学习的宝贵经验。',
+        pinyin: 'Zhè běn wéndàng de zuòzhě fēnxiǎng le hànyǔ xuéxí de bǎoguì jīngyàn.',
+        indonesian: 'Penulis dokumen ini berbagi pengalaman berharga dalam belajar bahasa Mandarin.',
+        english: 'The author of this document shared valuable experience in learning Chinese.'
       }
     ]
   },

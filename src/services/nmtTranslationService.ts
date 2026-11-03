@@ -12,6 +12,7 @@
  */
 
 import * as pdfjsLib from 'pdfjs-dist';
+import { OCREngine } from './ocrEngine';
 
 // Ensure PDF.js worker is configured
 if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
@@ -408,6 +409,7 @@ export class NMTTranslationService {
   ): Promise<DocumentTranslationResult> {
     const t0 = performance.now();
     const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type.includes('pdf');
+    const isImage = file.type.startsWith('image/') || /\.(png|jpe?g|webp|bmp)$/i.test(file.name);
 
     onProgress?.({
       current: 0,
@@ -431,6 +433,35 @@ export class NMTTranslationService {
         rawPages = [{
           pageNumber: 1,
           paragraphs: [`Failed to extract PDF text: ${err?.message || err}`],
+          fullText: '',
+          wordCount: 0,
+        }];
+      }
+    } else if (isImage) {
+      onProgress?.({
+        current: 1,
+        total: 1,
+        percent: 25,
+        message: 'Scanning text from image / photo with MonkeyOCR...',
+        stage: 'reading',
+      });
+      try {
+        const ocrDoc = await OCREngine.processCustomDocument(file, 1);
+        const textLines = ocrDoc.blocks
+          .map((b) => b.chineseText)
+          .filter(Boolean);
+        const fullText = textLines.join('\n\n') || ocrDoc.fullChineseText || 'No text detected in image';
+        rawPages = [{
+          pageNumber: 1,
+          paragraphs: textLines.length > 0 ? textLines : [fullText],
+          fullText,
+          wordCount: fullText.split(/\s+/).filter(Boolean).length,
+        }];
+      } catch (err: any) {
+        console.warn('Image OCR extraction failed:', err);
+        rawPages = [{
+          pageNumber: 1,
+          paragraphs: ['Image OCR extraction failed.'],
           fullText: '',
           wordCount: 0,
         }];
