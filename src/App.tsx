@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { ActiveTab, DocumentWordToken, Flashcard } from './types';
 import { Sidebar } from './components/Sidebar';
+import { Dashboard } from './components/Dashboard';
 import { DocumentReader } from './components/DocumentReader';
 import { DocumentTranslator } from './components/DocumentTranslator';
 import { FlashcardHub } from './components/FlashcardHub';
 import { HoverPopup } from './components/HoverPopup';
 import { PythonApiModal } from './components/PythonApiModal';
-import { DICTIONARY_DATABASE } from './data/cc_cedict_sample';
+import { DICTIONARY_DATABASE, getDictionaryEntry } from './data/cc_cedict_sample';
 
 export const App: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('reader');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [popupToken, setPopupToken] = useState<DocumentWordToken | null>(null);
   const [popupPos, setPopupPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isApiModalOpen, setIsApiModalOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Initialize flashcards state with saved items or samples
   const [flashcards, setFlashcards] = useState<Flashcard[]>(() => {
@@ -51,7 +53,23 @@ export const App: React.FC = () => {
   }, []);
 
   const handleSelectToken = (token: DocumentWordToken, mousePos: { x: number; y: number }) => {
-    setPopupToken(token);
+    const isChinese = /[\u4e00-\u9fa5]/.test(token.chinese);
+    let resolvedToken = token;
+    if (isChinese) {
+      const freshDict = getDictionaryEntry(token.chinese);
+      resolvedToken = {
+        ...freshDict,
+        ...token,
+        pinyin: freshDict.pinyin || token.pinyin,
+        radical: freshDict.radical || token.radical,
+        englishDef: freshDict.englishDef && !freshDict.englishDef.startsWith('Chinese vocabulary item:')
+          ? freshDict.englishDef
+          : token.englishDef || freshDict.englishDef,
+        grammarNotes: freshDict.grammarNotes || token.grammarNotes,
+        examples: freshDict.examples && freshDict.examples.length > 0 ? freshDict.examples : token.examples,
+      };
+    }
+    setPopupToken(resolvedToken);
     setPopupPos(mousePos);
   };
 
@@ -100,12 +118,45 @@ export const App: React.FC = () => {
     });
   };
 
+  const handleUpdateFlashcard = (updatedCard: Flashcard) => {
+    setFlashcards((prev) => prev.map((c) => (c.id === updatedCard.id ? updatedCard : c)));
+  };
+
+  const handleAddFlashcardFromText = (
+    character: string,
+    pinyin: string,
+    def: string,
+    sourceSentence?: string
+  ) => {
+    setFlashcards((prev) => {
+      const exists = prev.some((c) => c.character === character);
+      if (exists) return prev;
+      const dictInfo = getDictionaryEntry(character);
+
+      const newCard: Flashcard = {
+        ...dictInfo,
+        id: `card-${Date.now()}`,
+        character: character,
+        pinyin: pinyin || dictInfo.pinyin,
+        indonesianDef: def || dictInfo.indonesianDef,
+        sourceSentence: sourceSentence,
+        addedAt: new Date().toISOString(),
+        masteryLevel: 0,
+        easinessFactor: 2.5,
+        repetitionCount: 0,
+        intervalDays: 1,
+        nextReviewDate: new Date().toISOString().split('T')[0],
+      };
+      return [newCard, ...prev];
+    });
+  };
+
   const isSavedInFlashcard = popupToken
     ? flashcards.some((c) => c.character === popupToken.chinese)
     : false;
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 selection:bg-red-500/30 selection:text-red-300">
+    <div className="flex h-screen w-screen overflow-hidden bg-slate-950 text-slate-100 selection:bg-rose-500/30 selection:text-rose-300">
       {/* Sidebar Navigation */}
       <Sidebar
         activeTab={activeTab}
@@ -115,10 +166,19 @@ export const App: React.FC = () => {
         }}
         flashcardCount={flashcards.length}
         onOpenApiModal={() => setIsApiModalOpen(true)}
+        isCollapsed={isSidebarCollapsed}
+        onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
       />
 
-      {/* Main View Area */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
+      {/* Main View Area with strict min-w-0 to prevent horizontal blowout */}
+      <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden relative">
+        {activeTab === 'dashboard' && (
+          <Dashboard
+            onNavigate={(tab) => setActiveTab(tab)}
+            flashcards={flashcards}
+          />
+        )}
+
         {activeTab === 'reader' && (
           <DocumentReader
             onSelectToken={handleSelectToken}
@@ -126,13 +186,16 @@ export const App: React.FC = () => {
           />
         )}
 
-        {activeTab === 'translator' && <DocumentTranslator />}
+        {activeTab === 'translator' && (
+          <DocumentTranslator onAddFlashcard={handleAddFlashcardFromText} />
+        )}
 
         {activeTab === 'flashcards' && (
           <FlashcardHub
             flashcards={flashcards}
             onRemoveFlashcard={handleRemoveFlashcard}
             onAddSampleCards={handleAddSampleCards}
+            onUpdateFlashcard={handleUpdateFlashcard}
           />
         )}
       </main>

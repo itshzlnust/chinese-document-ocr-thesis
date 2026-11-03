@@ -28,3 +28,6 @@ modelscope>=1.15.0      # untuk download dari ModelScope
 
 # ── Utilities ──
 numpy>=1.24.0
+einops>=0.8.0
+pypdfium2>=5.10.0
+opencv-python>=4.8.0

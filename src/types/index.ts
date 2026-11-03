@@ -76,6 +76,12 @@ export interface Flashcard {
   masteryLevel: number; // 0 to 5
   nextReviewDate?: string;
   tags?: string[];
+  // SM2 Spaced Repetition fields as per LexiDoc proposal
+  sourceSentence?: string;
+  easinessFactor?: number; // EF (default 2.5)
+  repetitionCount?: number; // n (review count)
+  intervalDays?: number; // I(n)
+  lastQualityGrade?: number; // q (1 to 5)
 }
 
-export type ActiveTab = 'reader' | 'translator' | 'flashcards' | 'api-settings';
+export type ActiveTab = 'dashboard' | 'reader' | 'translator' | 'flashcards' | 'api-settings';
